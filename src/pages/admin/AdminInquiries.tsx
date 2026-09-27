@@ -1,105 +1,86 @@
 import { useState } from 'react';
-import { Search, MessageSquare } from 'lucide-react';
+import { Search, MessageSquare, ArrowRight } from 'lucide-react';
+import Reveal from '@/components/shared/Reveal';
 import { inquiries as allInquiries } from '@/lib/data/inquiries';
 import { formatRelativeTime, getStatusColor } from '@/lib/utils/formatters';
 
 export default function AdminInquiries() {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [status, setStatus] = useState('');
 
-  const filteredInquiries = allInquiries.filter((inq) => {
-    const matchesSearch = !search ||
-      inq.subject.toLowerCase().includes(search.toLowerCase()) ||
-      inq.travelerName.toLowerCase().includes(search.toLowerCase()) ||
-      inq.partnerName.toLowerCase().includes(search.toLowerCase());
-    const matchesStatus = !statusFilter || inq.status === statusFilter;
-    return matchesSearch && matchesStatus;
+  const filtered = allInquiries.filter((i) => {
+    const s = !search || i.subject.toLowerCase().includes(search.toLowerCase()) || i.travelerName.toLowerCase().includes(search.toLowerCase()) || i.partnerName.toLowerCase().includes(search.toLowerCase());
+    const st = !status || i.status === status;
+    return s && st;
   });
 
-  const statusCounts = {
-    new: allInquiries.filter((i) => i.status === 'new').length,
-    read: allInquiries.filter((i) => i.status === 'read').length,
-    replied: allInquiries.filter((i) => i.status === 'replied').length,
-    closed: allInquiries.filter((i) => i.status === 'closed').length,
-  };
+  const counts = { new: 0, read: 0, replied: 0, closed: 0 };
+  allInquiries.forEach((i) => { counts[i.status as keyof typeof counts] += 1; });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">All Inquiries</h1>
-        <p className="text-muted-foreground mt-1">Monitor traveler-partner communications</p>
-      </div>
+    <div className="space-y-8">
+      <Reveal>
+        <span className="text-primary text-[10px] font-bold tracking-luxe uppercase">Oversight</span>
+        <h1 className="font-display text-4xl font-black mt-1">All <em className="gold-text not-italic font-display italic">Correspondence</em></h1>
+        <p className="text-muted-foreground mt-2">Every letter between guest and house</p>
+      </Reveal>
 
-      {/* Status Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {Object.entries(statusCounts).map(([status, count]) => (
-          <button
-            key={status}
-            onClick={() => setStatusFilter(statusFilter === status ? '' : status)}
-            className={`p-3 rounded-xl border text-center transition-colors ${
-              statusFilter === status ? 'border-primary bg-primary/5' : 'border-border bg-card hover:bg-secondary'
-            }`}
-          >
-            <p className="text-lg font-bold">{count}</p>
-            <p className="text-xs text-muted-foreground capitalize">{status}</p>
-          </button>
-        ))}
-      </div>
+      <Reveal delay={60}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {(Object.entries(counts) as [string, number][]).map(([k, v]) => (
+            <button key={k} onClick={() => setStatus(status === k ? '' : k)} className={`p-4 rounded-2xl border text-center transition-all active:scale-95 ${status === k ? 'border-primary bg-primary/10 shadow-lg shadow-primary/10' : 'border-border bg-card card-luxe'}`}>
+              <p className="font-display text-3xl font-black gold-text">{v}</p>
+              <p className="text-[10px] text-muted-foreground font-black uppercase tracking-luxe mt-0.5">{k}</p>
+            </button>
+          ))}
+        </div>
+      </Reveal>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search inquiries..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-        />
-      </div>
+      <Reveal delay={100}>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by guest, house or subject..." className="w-full pl-11 pr-4 py-3.5 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/40" />
+        </div>
+      </Reveal>
 
-      {/* Inquiries List */}
-      {filteredInquiries.length > 0 ? (
-        <div className="space-y-4">
-          {filteredInquiries.map((inq) => (
-            <div key={inq.id} className="p-5 rounded-xl border border-border bg-card">
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <div>
-                  <h3 className="font-semibold">{inq.subject}</h3>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    <span className="font-medium text-foreground">{inq.travelerName}</span>
-                    {' → '}
-                    <span className="font-medium text-foreground">{inq.partnerName}</span>
-                  </p>
-                  <p className="text-xs text-muted-foreground">Listing: {inq.listingTitle}</p>
+      {filtered.length > 0 ? (
+        <div className="space-y-5">
+          {filtered.map((inq, i) => (
+            <Reveal key={inq.id} delay={i * 50}>
+              <div className="rounded-3xl border border-border/60 bg-card p-6 card-luxe">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <h3 className="font-display text-xl font-bold">{inq.subject}</h3>
+                    <p className="text-sm text-muted-foreground mt-1 flex items-center gap-2 flex-wrap">
+                      <span className="font-bold text-foreground">{inq.travelerName}</span>
+                      <ArrowRight className="w-3.5 h-3.5 text-primary" />
+                      <span className="font-bold text-foreground">{inq.partnerName}</span>
+                      <span>· {inq.listingTitle}</span>
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${getStatusColor(inq.status)}`}>{inq.status}</span>
                 </div>
-                <span className={`shrink-0 px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(inq.status)}`}>
-                  {inq.status}
-                </span>
-              </div>
-
-              <div className="p-3 rounded-lg bg-secondary/50 text-sm mb-2">
-                <p className="text-muted-foreground">{inq.message}</p>
-              </div>
-
-              {inq.reply && (
-                <div className="p-3 rounded-lg bg-primary/5 border-l-2 border-primary text-sm mb-2">
-                  <p className="text-xs font-medium text-primary mb-1">Partner Reply:</p>
-                  <p>{inq.reply}</p>
+                <div className="mt-4 p-4 rounded-2xl bg-secondary/50 text-sm leading-relaxed">{inq.message}</div>
+                {inq.reply && (
+                  <div className="mt-3 p-4 rounded-2xl border-l-2 border-primary bg-primary/5 text-sm">
+                    <p className="text-[10px] font-black uppercase tracking-luxe text-primary mb-1.5">House reply</p>
+                    {inq.reply}
+                  </div>
+                )}
+                <div className="flex flex-wrap gap-4 mt-4 text-xs text-muted-foreground">
+                  {inq.travelDates && <span>◆ {inq.travelDates}</span>}
+                  {inq.numberOfGuests && <span>◆ {inq.numberOfGuests} guests</span>}
+                  <span>◆ {formatRelativeTime(inq.createdAt)}</span>
                 </div>
-              )}
-
-              <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
-                {inq.travelDates && <span>📅 {inq.travelDates}</span>}
-                {inq.numberOfGuests && <span>👥 {inq.numberOfGuests} guests</span>}
-                <span>⏱️ {formatRelativeTime(inq.createdAt)}</span>
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <MessageSquare className="w-12 h-12 text-muted-foreground mx-auto mb-3" />
-          <p className="text-muted-foreground">No inquiries match your criteria</p>
+        <div className="text-center py-20 rounded-3xl border border-dashed border-border">
+          <MessageSquare className="w-12 h-12 text-primary mx-auto animate-float" />
+          <p className="font-display text-2xl font-black mt-4">No letters here</p>
+          <p className="text-muted-foreground mt-2 text-sm">Adjust your filters.</p>
         </div>
       )}
     </div>

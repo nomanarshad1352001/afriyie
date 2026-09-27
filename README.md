@@ -1,59 +1,48 @@
-# 🌍 AfriYie — Experience Ghana. Experience Africa Well.
+# 🌍 AfriYie — Luxury Ghana Travel & Cultural Experiences
 
-AfriYie is an AI-powered travel and cultural discovery marketplace designed to help travelers discover, plan, and experience Ghana through one integrated platform. It combines elements of Expedia, Airbnb Experiences, TripAdvisor, and AI trip planning into a single, beautiful marketplace.
+**Experience Ghana. Experience Africa Well.**
+
+AfriYie is a modern-luxury travel marketplace connecting discerning travelers to Ghana's finest estates, heritage journeys, safaris and cultural celebrations — with an AI composer that drafts complete bespoke itineraries. Built entirely on curated dummy data: no database required, deploy-ready in minutes.
+
+## ✨ Design Language
+
+A modern luxury aesthetic — smoked obsidian & warm ivory palettes, champagne-gold accents, Playfair Display serif typography, ornamental frames, Ken Burns cinematic imagery, marquee strips, scroll-triggered reveals, animated counters, and a typewriter auto-fill demo login.
 
 ## Tech Stack
 
-- **React 19** + **TypeScript** — UI framework
-- **Vite 7** — Build tool
-- **Tailwind CSS 4** — Styling
-- **React Router** — Client-side routing
-- **Zustand** — Global state management
-- **Recharts** — Analytics and data visualization
-- **Lucide React** — Icon library
-- **React Hot Toast** — Toast notifications
-- **date-fns** — Date formatting
+- **React 19** + **TypeScript** · **Vite 7** · **Tailwind CSS 4**
+- **React Router** — routing · **Zustand** — state (auth + theme)
+- **Recharts** — analytics · **Lucide React** — icons · **React Hot Toast**
+- **Google Fonts** — Playfair Display + Manrope
+- **Imagery** — verified royalty-free photos (Unsplash / Pexels)
 
-## Prerequisites
-
-- Node.js 18+
-- npm 9+
-
-## Local Setup
+## Quick Start
 
 ```bash
-# 1. Clone/download the project
-# 2. Install dependencies
 npm install
-
-# 3. Start development server
-npm run dev
-
-# 4. Build for production
-npm run build
+npm run dev        # start dev server
+npm run build      # production build
 ```
 
-## 🔑 Demo Credentials
+## 🔑 Demo Credentials (one-click auto-fill on the login page)
 
 | Role | Email | Password |
 |------|-------|----------|
-| **Admin** | admin@demo.com | demo1234 |
-| **Traveler** | user@demo.com | demo1234 |
-| **Partner** | partner@demo.com | demo1234 |
+| **Admin — The Atelier** | admin@demo.com | demo1234 |
+| **Traveler — Member** | user@demo.com | demo1234 |
+| **Partner — House Host** | partner@demo.com | demo1234 |
 
-> Click any demo account on the login page to auto-fill and sign in instantly.
+Click any demo card on the login page — the credentials **type themselves in** and sign you in automatically.
 
 ## Features
 
-- 🏠 **Landing Page** — Hero with real Ghana photography, featured listings, regions, testimonials
-- 🔐 **Authentication** — Login/signup with role-based routing (traveler, partner, admin)
-- 🗺️ **Browse Listings** — Search, filter by category/region, grid/list view
-- 📋 **Listing Detail** — Full listing page with image gallery, amenities, inquiry form
-- 🤖 **AI Trip Planner** — Generate personalized Ghana itineraries with cost estimates
-- ❤️ **Favorites** — Save and manage favorite listings
-- ✈️ **Trip Planning** — Create and manage planned trips
-- 💬 **Inquiry System** — Traveler-to-partner messaging
-- 🏢 **Partner Portal** — Business profile, listing management, inquiry handling
-- 📊 **Admin Dashboard** — Analytics, user/partner/listing management, charts
-- 🌙 **Dark/Light Theme** — System-preference aware with manual toggle
-- 📱 **Fully Responsive** — Mobile-first design with slide-in navigation
+- 🎬 **Cinematic landing** — Ken Burns hero, gold marquee, scroll reveals, animated counters, editorial destination cards, testimonials
+- 🔐 **Animated auth** — split-screen login/signup with typewriter demo autofill, ambient orbs, glass panels
+- 🏛️ **Collections** — search, category pills, region filters, scroll-reveal grid
+- 📜 **Listing detail** — full-bleed gallery, thumbnails, amenity privileges, enquiry modal, related picks
+- 🤖 **AI Composer** — preference brief → animated composing sequence → priced day-by-day itinerary
+- ❤️ **Member suite** — vault (favorites), journeys (trips), correspondence (inquiries)
+- 🏢 **Partner suite** — performance charts, collection management, inquiry replies, house profile
+- 📊 **Atelier (admin)** — revenue/growth/category/region charts, pulse feed, members & house curation
+- 🌙 **Dark / light themes** — both designed luxuriously, system-aware with manual toggle
+- 📱 **Fully responsive** — obsidian slide-in sidebar, mobile-first layouts

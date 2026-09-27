@@ -1,144 +1,117 @@
 import { useState } from 'react';
-import { Search, CheckCircle, XCircle, Eye, Star, MapPin } from 'lucide-react';
+import { Search, CheckCircle2, XCircle, Eye, MapPin, Star, List } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import Reveal from '@/components/shared/Reveal';
 import { listings as allListings } from '@/lib/data/listings';
-import { getCategoryColor, getCategoryIcon, getStatusColor } from '@/lib/utils/formatters';
-import { LISTING_CATEGORIES } from '@/lib/types';
+import { getStatusColor } from '@/lib/utils/formatters';
+import { LISTING_CATEGORIES, Listing } from '@/lib/types';
 
 export default function AdminListings() {
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [localListings, setLocalListings] = useState(allListings);
+  const [category, setCategory] = useState('');
+  const [status, setStatus] = useState('');
+  const [items, setItems] = useState<Listing[]>(allListings);
+  const [confirmId, setConfirmId] = useState<string | null>(null);
 
-  const filteredListings = localListings.filter((l) => {
-    const matchesSearch = !search ||
-      l.title.toLowerCase().includes(search.toLowerCase()) ||
-      l.city.toLowerCase().includes(search.toLowerCase());
-    const matchesCategory = !categoryFilter || l.category === categoryFilter;
-    const matchesStatus = !statusFilter || l.status === statusFilter;
-    return matchesSearch && matchesCategory && matchesStatus;
+  const filtered = items.filter((l) => {
+    const s = !search || l.title.toLowerCase().includes(search.toLowerCase()) || l.city.toLowerCase().includes(search.toLowerCase());
+    const c = !category || l.category === category;
+    const st = !status || l.status === status;
+    return s && c && st;
   });
 
-  const handleApprove = (id: string) => {
-    setLocalListings((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: 'active' as const } : l))
-    );
-    toast.success('Listing approved!');
+  const decide = (id: string, ok: boolean) => {
+    setItems((p) => p.map((x) => x.id === id ? { ...x, status: ok ? 'active' : 'rejected' } : x));
+    toast.success(ok ? 'Collection made live' : 'Collection returned');
   };
 
-  const handleReject = (id: string) => {
-    setLocalListings((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, status: 'rejected' as const } : l))
-    );
-    toast.success('Listing rejected');
-  };
-
-  const handleRemove = (id: string) => {
-    setLocalListings((prev) => prev.filter((l) => l.id !== id));
-    toast.success('Listing removed');
+  const remove = (id: string) => {
+    setItems((p) => p.filter((x) => x.id !== id));
+    setConfirmId(null);
+    toast.success('Collection removed from the gallery');
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold">Listings Management</h1>
-        <p className="text-muted-foreground mt-1">
-          {allListings.length} total listings • {allListings.filter((l) => l.status === 'pending').length} pending
-        </p>
-      </div>
+    <div className="space-y-8">
+      <Reveal>
+        <span className="text-primary text-[10px] font-bold tracking-luxe uppercase">Moderation</span>
+        <h1 className="font-display text-4xl font-black mt-1">The <em className="gold-text not-italic font-display italic">Gallery</em></h1>
+        <p className="text-muted-foreground mt-2">{items.length} pieces on record</p>
+      </Reveal>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-3">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search listings..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-          />
+      <Reveal delay={70}>
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search the gallery..." className="w-full pl-11 pr-4 py-3.5 rounded-full border border-border bg-card focus:outline-none focus:ring-2 focus:ring-primary/40" />
+          </div>
+          <select value={category} onChange={(e) => setCategory(e.target.value)} className="px-5 py-3.5 rounded-full border border-border bg-card font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40">
+            <option value="">All categories</option>
+            {LISTING_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+          <select value={status} onChange={(e) => setStatus(e.target.value)} className="px-5 py-3.5 rounded-full border border-border bg-card font-semibold focus:outline-none focus:ring-2 focus:ring-primary/40">
+            <option value="">All states</option>
+            <option value="active">Live</option>
+            <option value="pending">Pending</option>
+            <option value="rejected">Rejected</option>
+          </select>
         </div>
-        <select
-          value={categoryFilter}
-          onChange={(e) => setCategoryFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          <option value="">All Categories</option>
-          {LISTING_CATEGORIES.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-        </select>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="px-3 py-2.5 rounded-lg border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
-        >
-          <option value="">All Status</option>
-          <option value="active">Active</option>
-          <option value="pending">Pending</option>
-          <option value="rejected">Rejected</option>
-          <option value="draft">Draft</option>
-        </select>
-      </div>
+      </Reveal>
 
-      {/* Listings */}
-      {filteredListings.length > 0 ? (
-        <div className="space-y-3">
-          {filteredListings.map((listing) => (
-            <div key={listing.id} className="p-4 rounded-xl border border-border bg-card flex flex-col sm:flex-row gap-4">
-              <div className="w-full sm:w-28 h-20 rounded-lg overflow-hidden bg-muted shrink-0">
-                <img src={listing.images[0]} alt={listing.title} className="w-full h-full object-cover" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between gap-2">
-                  <div>
-                    <h3 className="font-semibold text-sm">{listing.title}</h3>
-                    <div className="flex flex-wrap items-center gap-2 mt-1">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getCategoryColor(listing.category)}`}>
-                        {getCategoryIcon(listing.category)} {listing.category}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getStatusColor(listing.status)}`}>
-                        {listing.status}
-                      </span>
-                      {listing.featured && (
-                        <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-200">⭐ Featured</span>
-                      )}
-                    </div>
+      {filtered.length > 0 ? (
+        <div className="space-y-4">
+          {filtered.map((l, i) => (
+            <Reveal key={l.id} delay={i * 50}>
+              <div className="rounded-3xl border border-border/60 bg-card p-4 card-luxe flex flex-col md:flex-row gap-5">
+                <div className="md:w-48 h-36 rounded-2xl overflow-hidden bg-muted shrink-0">
+                  <img src={l.images[0]} alt={l.title} loading="lazy" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0 py-1">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <h3 className="font-display text-xl font-bold">{l.title}</h3>
+                    <span className="px-3 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase tracking-wide">{l.category}</span>
+                    <span className={`px-3 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wide ${getStatusColor(l.status)}`}>{l.status}</span>
+                    {l.featured && <span className="px-3 py-0.5 rounded-full bg-gold/20 text-gold text-[10px] font-black uppercase">✦</span>}
                   </div>
-                  <div className="flex gap-1 shrink-0">
-                    <Link to={`/listings/${listing.id}`} className="p-1.5 rounded hover:bg-secondary text-muted-foreground">
-                      <Eye className="w-4 h-4" />
-                    </Link>
+                  <div className="flex flex-wrap gap-4 mt-2.5 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1"><MapPin className="w-3.5 h-3.5 text-primary" />{l.city}, {l.region}</span>
+                    <span className="flex items-center gap-1"><Star className="w-3.5 h-3.5 fill-gold text-gold" />{l.rating} ({l.reviewCount})</span>
+                    <span className="font-bold text-primary">{l.priceRange}</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2.5 mt-4">
+                    <Link to={`/listings/${l.id}`} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border text-xs font-bold hover:border-primary/50 hover:text-primary transition-colors"><Eye className="w-3.5 h-3.5" /> View</Link>
+                    {l.status === 'pending' && (
+                      <>
+                        <button onClick={() => decide(l.id, true)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-emerald-600 text-white text-xs font-bold hover:bg-emerald-500 transition-colors"><CheckCircle2 className="w-3.5 h-3.5" /> Go Live</button>
+                        <button onClick={() => decide(l.id, false)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-rose-500/40 text-rose-500 text-xs font-bold hover:bg-rose-500/10 transition-colors"><XCircle className="w-3.5 h-3.5" /> Return</button>
+                      </>
+                    )}
+                    {l.status !== 'pending' && (
+                      <div className="relative">
+                        <button onClick={() => setConfirmId(confirmId === l.id ? null : l.id)} className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full border border-border text-xs font-bold text-rose-500 hover:bg-rose-500/10 transition-colors"><XCircle className="w-3.5 h-3.5" /> Remove</button>
+                        {confirmId === l.id && (
+                          <div className="absolute left-0 top-full mt-2 w-52 p-3.5 rounded-2xl border border-border bg-card shadow-2xl z-10 animate-scale-in">
+                            <p className="text-xs font-semibold mb-2.5">Withdraw this piece from the gallery?</p>
+                            <div className="flex gap-2">
+                              <button onClick={() => remove(l.id)} className="flex-1 py-1.5 rounded-lg bg-destructive text-destructive-foreground text-xs font-bold">Withdraw</button>
+                              <button onClick={() => setConfirmId(null)} className="flex-1 py-1.5 rounded-lg border border-border text-xs font-bold">Keep</button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-                  <span className="flex items-center gap-1"><MapPin className="w-3 h-3" /> {listing.city}, {listing.region}</span>
-                  <span className="flex items-center gap-1"><Star className="w-3 h-3" /> {listing.rating} ({listing.reviewCount})</span>
-                  <span className="font-medium text-primary">{listing.priceRange}</span>
-                </div>
-                {listing.status === 'pending' && (
-                  <div className="flex gap-2 mt-3">
-                    <button onClick={() => handleApprove(listing.id)} className="flex items-center gap-1 px-2.5 py-1 bg-green-600 text-white text-xs rounded-lg hover:bg-green-700">
-                      <CheckCircle className="w-3 h-3" /> Approve
-                    </button>
-                    <button onClick={() => handleReject(listing.id)} className="flex items-center gap-1 px-2.5 py-1 bg-red-600 text-white text-xs rounded-lg hover:bg-red-700">
-                      <XCircle className="w-3 h-3" /> Reject
-                    </button>
-                  </div>
-                )}
-                {listing.status !== 'pending' && (
-                  <button onClick={() => handleRemove(listing.id)} className="mt-2 text-xs text-destructive hover:underline">
-                    Remove listing
-                  </button>
-                )}
               </div>
-            </div>
+            </Reveal>
           ))}
         </div>
       ) : (
-        <div className="text-center py-12">
-          <span className="text-5xl block mb-3">📋</span>
-          <p className="text-muted-foreground">No listings match your criteria</p>
+        <div className="text-center py-20 rounded-3xl border border-dashed border-border">
+          <List className="w-12 h-12 text-primary mx-auto animate-float" />
+          <p className="font-display text-2xl font-black mt-4">The gallery is quiet here</p>
+          <p className="text-muted-foreground mt-2 text-sm">Loosen the filters.</p>
         </div>
       )}
     </div>

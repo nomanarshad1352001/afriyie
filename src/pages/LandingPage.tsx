@@ -1,403 +1,377 @@
 import { Link } from 'react-router-dom';
-import { Search, Star, Compass, Shield, Sparkles, ArrowRight, Globe, Users, Heart, MapPin, ChevronRight, Play } from 'lucide-react';
-import { useState } from 'react';
+import { Search, Star, ArrowRight, ArrowUpRight, Sparkles, Crown, Shield, Compass, Quote } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
 import PublicNavbar from '@/components/layout/PublicNavbar';
 import ListingCard from '@/components/shared/ListingCard';
+import Reveal from '@/components/shared/Reveal';
 import { listings } from '@/lib/data/listings';
-import { LISTING_CATEGORIES } from '@/lib/types';
 
-const HERO_IMAGES = [
-  'https://images.pexels.com/photos/723534/pexels-photo-723534.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=900&w=1600',
-  'https://images.pexels.com/photos/5110556/pexels-photo-5110556.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=900&w=1600',
-  'https://images.pexels.com/photos/32490286/pexels-photo-32490286.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=900&w=1600',
+const MARQUEE_ITEMS = ['Cape Coast Castle', 'Mole Safari', 'Kumasi Kente', 'Labadi Beach', 'Aburi Sanctuary', 'Wli Falls', 'Kakum Canopy', 'Homowo Festival', 'Volta Highlands', 'Elmina Ramparts'];
+
+const DESTINATIONS = [
+  { name: 'Greater Accra', line: 'The Gilded Coast', img: 'https://images.pexels.com/photos/723534/pexels-photo-723534.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200' },
+  { name: 'Ashanti', line: 'Kingdom of Gold', img: 'https://images.pexels.com/photos/32490286/pexels-photo-32490286.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200' },
+  { name: 'Central', line: 'Echoes of Heritage', img: 'https://images.pexels.com/photos/5110556/pexels-photo-5110556.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200' },
+  { name: 'Northern', line: 'Savannah Majesty', img: 'https://images.pexels.com/photos/15212404/pexels-photo-15212404.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200' },
 ];
 
-const HERO_STATS = [
-  { label: 'Experiences', value: '200+', icon: '🎭' },
-  { label: 'Partners', value: '50+', icon: '🤝' },
-  { label: 'Regions', value: '16', icon: '📍' },
-  { label: 'Travelers', value: '5K+', icon: '✈️' },
-];
-
-const FEATURES = [
-  { icon: Sparkles, title: 'AI Trip Planner', description: 'Get personalized itineraries powered by AI based on your budget, interests, and travel dates.', color: 'from-emerald-500 to-teal-500' },
-  { icon: Compass, title: 'Curated Experiences', description: 'Hand-picked cultural tours, heritage visits, and adventure activities across all 16 regions.', color: 'from-amber-500 to-orange-500' },
-  { icon: Shield, title: 'Verified Partners', description: 'Every partner is vetted to ensure quality, safety, and authentic Ghanaian hospitality.', color: 'from-blue-500 to-indigo-500' },
-  { icon: Globe, title: 'All-In-One Platform', description: 'Book accommodations, experiences, transport, and festivals in a single marketplace.', color: 'from-purple-500 to-pink-500' },
-];
-
-const REGIONS_SHOWCASE = [
-  { name: 'Greater Accra', tagline: 'The Vibrant Capital', emoji: '🏙️', img: 'https://images.pexels.com/photos/20236344/pexels-photo-20236344.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
-  { name: 'Ashanti', tagline: 'Kingdom of Gold', emoji: '👑', img: 'https://images.pexels.com/photos/32490286/pexels-photo-32490286.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
-  { name: 'Central', tagline: 'Heritage & History', emoji: '🏛️', img: 'https://images.pexels.com/photos/5110556/pexels-photo-5110556.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
-  { name: 'Volta', tagline: 'Nature\'s Paradise', emoji: '🌿', img: 'https://images.pexels.com/photos/15778472/pexels-photo-15778472.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
-  { name: 'Northern', tagline: 'Safari & Savannah', emoji: '🦁', img: 'https://images.pexels.com/photos/15212404/pexels-photo-15212404.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
-  { name: 'Eastern', tagline: 'Mountains & Wellness', emoji: '⛰️', img: 'https://images.pexels.com/photos/7222170/pexels-photo-7222170.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=400&w=600' },
+const PILLARS = [
+  { icon: Crown, title: 'Curated Excellence', text: 'Every estate, tour and festival is hand-selected by our Accra atelier and verified in person.' },
+  { icon: Sparkles, title: 'AI Bespoke Itineraries', text: 'Our intelligence crafts day-by-day journeys tailored to your tastes, pace and budget.' },
+  { icon: Shield, title: 'Discretion & Trust', text: 'Vetted partners, private concierges and white-glove service at every stage of your voyage.' },
+  { icon: Compass, title: 'Sixteen Regions', text: 'From golden coastlines to elephant savannahs — one marketplace for the whole of Ghana.' },
 ];
 
 const TESTIMONIALS = [
-  { name: 'Sarah J.', country: 'USA 🇺🇸', text: 'AfriYie made our Ghana trip absolutely magical. The AI planner saved us hours of research!', rating: 5 },
-  { name: 'Emmanuel K.', country: 'UK 🇬🇧', text: 'As a Ghanaian in the diaspora, this platform helped me rediscover my heritage. Incredible experience.', rating: 5 },
-  { name: 'Marie D.', country: 'France 🇫🇷', text: 'The cultural tours were authentic and life-changing. Best travel decision I\'ve ever made.', rating: 5 },
+  { quote: 'The most refined way to discover one\'s roots. Every detail — down to the champagne at the Castle — was impeccable.', name: 'Sarah Johnson', place: 'New York, USA', avatar: 'https://i.pravatar.cc/100?img=47' },
+  { quote: 'AfriYie\'s itinerary planner understood our family better than any agent we\'ve used. Ghana, in breathtaking detail.', name: 'Emma Williams', place: 'London, UK', avatar: 'https://i.pravatar.cc/100?img=32' },
+  { quote: 'From the Mole SkyDeck to the royal enclosure at Homowo — pure theatre of the finest kind.', name: 'Marie Dupont', place: 'Paris, France', avatar: 'https://i.pravatar.cc/100?img=44' },
 ];
+
+/* Animated counter that ticks up when scrolled into view */
+function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
+  const [value, setValue] = useState(0);
+  const ref = useRef<HTMLSpanElement>(null);
+  const started = useRef(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting && !started.current) {
+        started.current = true;
+        const duration = 1600;
+        const start = performance.now();
+        const tick = (now: number) => {
+          const p = Math.min((now - start) / duration, 1);
+          setValue(Math.round(target * (1 - Math.pow(1 - p, 3))));
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }
+    }, { threshold: 0.4 });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [target]);
+
+  return <span ref={ref}>{value.toLocaleString()}{suffix}</span>;
+}
 
 export default function LandingPage() {
   const [searchQuery, setSearchQuery] = useState('');
-  const [heroIdx] = useState(0);
-  const featuredListings = listings.filter((l) => l.featured).slice(0, 4);
-  const popularListings = listings.filter((l) => l.status === 'active').slice(0, 6);
+  const featured = listings.filter((l) => l.featured).slice(0, 3);
+  const signature = listings.filter((l) => l.status === 'active').slice(5, 9);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background overflow-x-hidden">
       <PublicNavbar />
 
-      {/* ═══════ HERO SECTION ═══════ */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
-        {/* Background Image */}
+      {/* ═══════════ CINEMATIC HERO ═══════════ */}
+      <section className="relative h-[100svh] min-h-[620px] overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src={HERO_IMAGES[heroIdx]}
-            alt="Ghana landscape"
-            className="w-full h-full object-cover"
+            src="https://images.pexels.com/photos/723534/pexels-photo-723534.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=1000&w=1800"
+            alt="Ghana's golden coastline at dusk"
+            className="w-full h-full object-cover animate-ken-burns"
           />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/50 to-black/30" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/25 to-black/75" />
         </div>
 
-        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-20 w-full">
-          <div className="max-w-2xl">
-            <div className="animate-fade-in-up">
-              <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-sm font-medium border border-white/20 mb-6">
-                <Sparkles className="w-4 h-4 text-amber-400" />
-                AI-Powered Travel Planning
-              </span>
-            </div>
+        {/* Ornamental corners */}
+        <div className="absolute inset-6 md:inset-10 border border-white/15 pointer-events-none z-10" />
+        <div className="absolute top-6 left-6 md:top-10 md:left-10 w-14 h-14 border-t-2 border-l-2 border-primary z-10" />
+        <div className="absolute bottom-6 right-6 md:bottom-10 md:right-10 w-14 h-14 border-b-2 border-r-2 border-primary z-10" />
 
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.05] animate-fade-in-up delay-100">
-              Experience<br />
-              <span className="gradient-text" style={{ WebkitTextFillColor: 'transparent', background: 'linear-gradient(135deg, #22c55e 0%, #f59e0b 50%, #ef4444 100%)', WebkitBackgroundClip: 'text', backgroundClip: 'text' }}>
-                Ghana.
-              </span>
-            </h1>
-
-            <p className="mt-6 text-lg md:text-xl text-white/80 leading-relaxed max-w-lg animate-fade-in-up delay-200">
-              Discover rich culture, breathtaking landscapes, and warm hospitality.
-              Plan your perfect trip with our AI-powered travel marketplace.
-            </p>
-
-            {/* Search Bar */}
-            <div className="mt-8 animate-fade-in-up delay-300">
-              <div className="relative max-w-xl">
-                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  placeholder="Search experiences, hotels, attractions..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-12 pr-32 py-4 rounded-2xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm text-foreground placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-primary shadow-2xl text-base"
-                />
-                <Link
-                  to={`/listings${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 px-6 py-2.5 bg-primary text-primary-foreground rounded-xl text-sm font-bold hover:bg-primary/90 transition-all hover:shadow-lg active:scale-95"
-                >
-                  Search
-                </Link>
-              </div>
-            </div>
-
-            {/* Category Pills */}
-            <div className="mt-5 flex flex-wrap gap-2 animate-fade-in-up delay-400">
-              {LISTING_CATEGORIES.map((cat) => (
-                <Link
-                  key={cat.value}
-                  to={`/listings?category=${cat.value}`}
-                  className="px-3.5 py-1.5 rounded-full bg-white/10 backdrop-blur-sm border border-white/20 text-white text-sm hover:bg-white/25 transition-all duration-200 hover:scale-105"
-                >
-                  {cat.label}
-                </Link>
-              ))}
-            </div>
+        <div className="relative z-20 h-full max-w-7xl mx-auto px-4 sm:px-6 flex flex-col justify-center items-center text-center">
+          <div className="animate-fade-in-down">
+            <span className="inline-flex items-center gap-3 text-champagne text-[11px] md:text-xs font-bold tracking-luxe uppercase">
+              <span className="w-10 h-px bg-primary" /> The Luxury Ghana Collective <span className="w-10 h-px bg-primary" />
+            </span>
           </div>
 
-          {/* Stats Strip */}
-          <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-3 max-w-2xl animate-fade-in-up delay-500">
-            {HERO_STATS.map((stat) => (
-              <div key={stat.label} className="text-center p-4 rounded-2xl bg-white/10 backdrop-blur-sm border border-white/15 hover:bg-white/20 transition-all duration-300">
-                <span className="text-2xl block mb-1">{stat.icon}</span>
-                <p className="text-2xl md:text-3xl font-black text-white">{stat.value}</p>
-                <p className="text-xs text-white/60 mt-0.5">{stat.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
+          <h1 className="font-display text-white mt-6 leading-[1.04]">
+            <span className="block text-4xl sm:text-6xl lg:text-8xl font-black animate-fade-in-up delay-100">Experience Ghana.</span>
+            <span className="block text-3xl sm:text-5xl lg:text-7xl italic font-medium gold-text mt-2 animate-fade-in-up delay-300">Experience Africa Well.</span>
+          </h1>
 
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-float">
-          <div className="w-6 h-10 rounded-full border-2 border-white/30 flex justify-center pt-2">
-            <div className="w-1.5 h-3 rounded-full bg-white/60 animate-bounce" />
-          </div>
-        </div>
-      </section>
+          <p className="mt-6 max-w-xl text-white/70 text-base md:text-lg font-light leading-relaxed animate-fade-in-up delay-500">
+            Bespoke journeys across sixteen regions — golden beaches, royal kingdoms
+            and elephant savannahs, tailored by intelligence and delivered with elegance.
+          </p>
 
-      {/* ═══════ FEATURED LISTINGS ═══════ */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="flex items-end justify-between mb-10">
-            <div className="animate-fade-in-up">
-              <span className="text-sm font-bold text-primary uppercase tracking-widest">Curated for you</span>
-              <h2 className="text-3xl md:text-4xl font-black mt-2">Featured Experiences</h2>
-              <p className="text-muted-foreground mt-2 text-lg">Handpicked highlights from across Ghana</p>
-            </div>
-            <Link
-              to="/listings"
-              className="hidden sm:flex items-center gap-2 px-5 py-2.5 rounded-xl border border-border hover:bg-secondary text-sm font-semibold transition-all hover:shadow-md group"
-            >
-              View all <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
-            {featuredListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} showFavorite isFavorited={false} />
-            ))}
-          </div>
-          <div className="mt-8 text-center sm:hidden">
-            <Link to="/listings" className="inline-flex items-center gap-2 text-sm font-bold text-primary">
-              View all listings <ArrowRight className="w-4 h-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ EXPLORE REGIONS ═══════ */}
-      <section className="py-20 md:py-28 bg-secondary/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 animate-fade-in-up">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest">Discover</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-2">Explore Ghana&apos;s Regions</h2>
-            <p className="text-muted-foreground mt-2 text-lg max-w-2xl mx-auto">Each region offers a unique blend of culture, landscapes, and unforgettable experiences</p>
-          </div>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 stagger-children">
-            {REGIONS_SHOWCASE.map((region) => (
+          {/* Search */}
+          <div className="mt-9 w-full max-w-xl animate-fade-in-up delay-700">
+            <div className="relative group">
+              <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+              <input
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && (window.location.href = `/listings${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`)}
+                placeholder="Search estates, safaris, festivals..."
+                className="w-full pl-14 pr-32 py-5 rounded-full bg-white/95 text-foreground placeholder:text-muted-foreground shadow-2xl focus:outline-none focus:ring-2 focus:ring-primary text-sm md:text-base"
+              />
               <Link
-                key={region.name}
-                to={`/listings?region=${encodeURIComponent(region.name)}`}
-                className="group relative rounded-2xl overflow-hidden aspect-[4/3] card-hover"
+                to={`/listings${searchQuery ? `?q=${encodeURIComponent(searchQuery)}` : ''}`}
+                className="btn-shine absolute right-2 top-1/2 -translate-y-1/2 px-6 py-3 rounded-full bg-primary text-primary-foreground text-sm font-bold transition-all hover:shadow-lg active:scale-95"
               >
-                <img src={region.img} alt={region.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" loading="lazy" />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6">
-                  <span className="text-3xl md:text-4xl block mb-1">{region.emoji}</span>
-                  <h3 className="font-bold text-white text-lg md:text-xl">{region.name}</h3>
-                  <p className="text-white/70 text-sm">{region.tagline}</p>
-                  <span className="inline-flex items-center gap-1 text-xs text-white/60 mt-2 group-hover:text-amber-400 transition-colors">
-                    Explore <ChevronRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
-                  </span>
-                </div>
+                Discover
               </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ ALL POPULAR LISTINGS ═══════ */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 animate-fade-in-up">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest">Popular</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-2">Trending Experiences</h2>
-            <p className="text-muted-foreground mt-2 text-lg">What travelers love most about Ghana</p>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 stagger-children">
-            {popularListings.map((listing) => (
-              <ListingCard key={listing.id} listing={listing} showFavorite isFavorited={false} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ WHY AFRIYIE ═══════ */}
-      <section className="py-20 md:py-28 bg-secondary/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-14 animate-fade-in-up">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest">Why Choose Us</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-2">Everything You Need for Ghana</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 stagger-children">
-            {FEATURES.map((feature) => (
-              <div key={feature.title} className="group relative p-6 rounded-2xl border border-border bg-card card-hover overflow-hidden">
-                <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300 shadow-lg`}>
-                  <feature.icon className="w-7 h-7 text-white" />
-                </div>
-                <h3 className="font-bold text-lg">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground mt-2 leading-relaxed">{feature.description}</p>
-                <div className={`absolute -bottom-8 -right-8 w-32 h-32 rounded-full bg-gradient-to-br ${feature.color} opacity-5 blur-2xl group-hover:opacity-10 transition-opacity`} />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ═══════ AI PLANNER CTA ═══════ */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="relative rounded-3xl overflow-hidden">
-            <img
-              src="https://images.pexels.com/photos/15212404/pexels-photo-15212404.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=600&w=1400"
-              alt="Ghana safari"
-              className="w-full h-[500px] object-cover"
-            />
-            <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/60 to-transparent" />
-            <div className="absolute inset-0 flex items-center">
-              <div className="px-8 md:px-14 max-w-xl">
-                <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-sm text-white text-sm font-medium border border-white/20 mb-5">
-                  <Sparkles className="w-4 h-4 text-amber-400" /> Powered by AI
-                </span>
-                <h2 className="text-3xl md:text-4xl font-black text-white leading-tight">
-                  Let AI Plan Your<br />Perfect Ghana Trip
-                </h2>
-                <p className="mt-4 text-white/75 text-lg leading-relaxed">
-                  Share your dates, budget, and interests. Our AI generates a complete
-                  itinerary with accommodations, activities, and cost estimates.
-                </p>
-                <div className="mt-8 flex flex-wrap gap-3">
-                  <Link to="/signup" className="px-7 py-3.5 bg-white text-gray-900 font-bold rounded-xl hover:bg-gray-100 transition-all shadow-lg hover:shadow-xl active:scale-95">
-                    Get Started Free
-                  </Link>
-                  <Link to="/listings" className="flex items-center gap-2 px-7 py-3.5 border border-white/30 text-white font-bold rounded-xl hover:bg-white/10 transition-all">
-                    <Play className="w-4 h-4" /> Watch Demo
-                  </Link>
-                </div>
-              </div>
             </div>
           </div>
+
+          {/* Stats */}
+          <div className="mt-12 grid grid-cols-3 gap-6 md:gap-14 animate-fade-in-up delay-1000">
+            {[{ n: 200, s: '+', l: 'Curated Stays' }, { n: 16, s: '', l: 'Regions' }, { n: 5000, s: '+', l: 'Guests Hosted' }].map((stat) => (
+              <div key={stat.l} className="text-center">
+                <p className="font-display text-3xl md:text-4xl font-black text-white"><Counter target={stat.n} suffix={stat.s} /></p>
+                <p className="text-[10px] md:text-xs text-primary tracking-luxe uppercase mt-1">{stat.l}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Scroll cue */}
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 animate-float">
+          <div className="flex flex-col items-center gap-2 text-white/50">
+            <span className="text-[9px] tracking-luxe uppercase">Scroll</span>
+            <div className="w-px h-10 bg-gradient-to-b from-primary to-transparent" />
+          </div>
         </div>
       </section>
 
-      {/* ═══════ TESTIMONIALS ═══════ */}
-      <section className="py-20 md:py-28 bg-secondary/30">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-12 animate-fade-in-up">
-            <span className="text-sm font-bold text-primary uppercase tracking-widest">Testimonials</span>
-            <h2 className="text-3xl md:text-4xl font-black mt-2">What Travelers Say</h2>
+      {/* ═══════════ MARQUEE ═══════════ */}
+      <div className="py-7 border-y border-border/60 bg-card overflow-hidden">
+        <div className="marquee-track">
+          {[...MARQUEE_ITEMS, ...MARQUEE_ITEMS].map((item, i) => (
+            <span key={i} className="flex items-center shrink-0">
+              <span className="font-display italic text-lg md:text-xl text-muted-foreground px-6">{item}</span>
+              <span className="text-primary text-xs">◆</span>
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* ═══════════ FEATURED COLLECTIONS ═══════════ */}
+      <section className="py-24 md:py-32 max-w-7xl mx-auto px-4 sm:px-6">
+        <Reveal className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-14">
+          <div>
+            <span className="text-primary text-xs font-bold tracking-luxe uppercase">The Edit</span>
+            <h2 className="font-display text-4xl md:text-5xl font-black mt-3 leading-tight">Signature <em className="gold-text not-italic font-display italic">Collections</em></h2>
+            <p className="text-muted-foreground mt-3 max-w-md">Our most coveted experiences — reserved for those who accept nothing less.</p>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 stagger-children">
-            {TESTIMONIALS.map((t) => (
-              <div key={t.name} className="p-6 rounded-2xl border border-border bg-card card-hover">
-                <div className="flex gap-1 mb-4">
-                  {Array.from({ length: t.rating }).map((_, i) => (
-                    <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                  ))}
+          <Link to="/listings" className="group inline-flex items-center gap-2 text-sm font-bold tracking-wide-luxe uppercase text-foreground hover:text-primary transition-colors">
+            View All <ArrowRight className="w-4 h-4 group-hover:translate-x-1.5 transition-transform" />
+          </Link>
+        </Reveal>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-7">
+          {featured.map((l, i) => (
+            <Reveal key={l.id} delay={i * 150}>
+              <ListingCard listing={l} showFavorite />
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════ EDITORIAL SPLIT — AI ═══════════ */}
+      <section className="py-24 md:py-32 bg-obsidian dark:bg-card text-white relative overflow-hidden">
+        <div className="absolute -top-32 -right-32 w-[420px] h-[420px] rounded-full bg-primary/10 blur-3xl" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 grid lg:grid-cols-2 gap-14 items-center relative">
+          <Reveal variant="left">
+            <span className="inline-flex items-center gap-2 text-primary text-xs font-bold tracking-luxe uppercase"><Sparkles className="w-4 h-4" /> AfriYie Intelligence</span>
+            <h2 className="font-display text-4xl md:text-6xl font-black mt-4 leading-[1.08]">
+              Your Journey, <br /><em className="gold-text">Composed by AI.</em>
+            </h2>
+            <p className="text-white/60 mt-6 text-lg font-light leading-relaxed max-w-md">
+              Share your dates, tastes and budget. Within moments, our composer drafts a
+              complete day-by-day odyssey — stays, tables, transport and cost, precisely estimated.
+            </p>
+            <ul className="mt-8 space-y-4">
+              {['Day-by-day itinerary with timings', 'Curated stays & tables per region', 'Precise cost composition', 'Packing and travel counsel'].map((t) => (
+                <li key={t} className="flex items-center gap-3 text-sm text-white/80">
+                  <span className="w-1.5 h-1.5 rotate-45 bg-primary" /> {t}
+                </li>
+              ))}
+            </ul>
+            <Link to="/signup" className="btn-shine inline-flex items-center gap-2 mt-10 px-8 py-4 rounded-full bg-primary text-primary-foreground font-bold hover:shadow-xl hover:shadow-primary/25 transition-all active:scale-95">
+              Compose My Journey <ArrowUpRight className="w-4 h-4" />
+            </Link>
+          </Reveal>
+
+          <Reveal variant="right" className="relative">
+            <div className="relative rounded-3xl overflow-hidden frame-luxe">
+              <img src="https://images.pexels.com/photos/15212404/pexels-photo-15212404.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200" alt="Savannah elephants" className="w-full aspect-[4/3] object-cover" loading="lazy" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] tracking-luxe uppercase text-white/60">Sample Output</p>
+                  <p className="font-display text-xl font-bold">Mole Savannah Retreat</p>
                 </div>
-                <p className="text-foreground leading-relaxed italic">&ldquo;{t.text}&rdquo;</p>
-                <div className="mt-4 pt-4 border-t border-border flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
-                    {t.name[0]}
-                  </div>
-                  <div>
-                    <p className="font-semibold text-sm">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.country}</p>
-                  </div>
-                </div>
+                <span className="px-3 py-1.5 rounded-full bg-primary/90 text-primary-foreground text-xs font-bold">3 Days · $1,840</span>
               </div>
+            </div>
+            <div className="absolute -top-4 -right-4 w-24 h-24 border-t-2 border-r-2 border-primary rounded-tr-3xl hidden md:block" />
+            <div className="absolute -bottom-4 -left-4 w-24 h-24 border-b-2 border-l-2 border-primary rounded-bl-3xl hidden md:block" />
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════ DESTINATIONS ═══════════ */}
+      <section className="py-24 md:py-32 max-w-7xl mx-auto px-4 sm:px-6">
+        <Reveal className="text-center mb-14">
+          <span className="text-primary text-xs font-bold tracking-luxe uppercase">Destinations</span>
+          <h2 className="font-display text-4xl md:text-5xl font-black mt-3">Four Worlds, <em className="gold-text not-italic font-display italic">One Nation</em></h2>
+        </Reveal>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          {DESTINATIONS.map((d, i) => (
+            <Reveal key={d.name} delay={i * 120}>
+              <Link to={`/listings?region=${encodeURIComponent(d.name)}`} className="group relative block rounded-3xl overflow-hidden aspect-[3/4] card-luxe">
+                <img src={d.img} alt={d.name} loading="lazy" className="w-full h-full object-cover transition-transform duration-[1100ms] group-hover:scale-110" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/20 to-transparent" />
+                <div className="absolute inset-4 border border-white/20 rounded-2xl pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
+                <div className="absolute bottom-0 inset-x-0 p-6">
+                  <p className="text-primary text-[10px] font-bold tracking-luxe uppercase">{d.line}</p>
+                  <div className="flex items-center justify-between mt-1.5">
+                    <h3 className="font-display text-2xl font-bold text-white">{d.name}</h3>
+                    <ArrowUpRight className="w-5 h-5 text-primary opacity-0 group-hover:opacity-100 group-hover:rotate-45 transition-all duration-500" />
+                  </div>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════ PILLARS ═══════════ */}
+      <section className="py-24 md:py-28 bg-secondary/40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <Reveal className="text-center mb-14">
+            <span className="text-primary text-xs font-bold tracking-luxe uppercase">The AfriYie Standard</span>
+            <h2 className="font-display text-4xl md:text-5xl font-black mt-3">Poised. Precise. <em className="gold-text not-italic font-display italic">Personal.</em></h2>
+          </Reveal>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {PILLARS.map((p, i) => (
+              <Reveal key={p.title} delay={i * 120}>
+                <div className="group p-7 rounded-3xl bg-card border border-border/60 card-luxe h-full">
+                  <div className="w-14 h-14 rounded-full border border-primary/40 flex items-center justify-center group-hover:bg-primary group-hover:border-primary transition-all duration-500">
+                    <p.icon className="w-6 h-6 text-primary group-hover:text-primary-foreground transition-colors" />
+                  </div>
+                  <h3 className="font-display text-xl font-bold mt-5">{p.title}</h3>
+                  <p className="text-sm text-muted-foreground mt-2.5 leading-relaxed">{p.text}</p>
+                </div>
+              </Reveal>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ═══════ PARTNER CTA ═══════ */}
-      <section className="py-20 md:py-28">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="animate-fade-in-up">
-              <span className="text-sm font-bold text-primary uppercase tracking-widest">For Businesses</span>
-              <h2 className="text-3xl md:text-4xl font-black mt-2">Grow Your Tourism Business</h2>
-              <p className="mt-4 text-muted-foreground text-lg leading-relaxed">
-                Join AfriYie and reach travelers worldwide. List your accommodations, tours,
-                experiences, and transport services on Ghana&apos;s premier travel marketplace.
-              </p>
-              <ul className="mt-6 space-y-3">
-                {['Reach international travelers', 'Dashboard analytics and insights', 'Manage bookings and inquiries', 'Professional business profile'].map((item) => (
-                  <li key={item} className="flex items-center gap-3 text-sm font-medium">
-                    <div className="w-6 h-6 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-                      <Star className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+      {/* ═══════════ MORE COLLECTIONS ═══════════ */}
+      <section className="py-24 md:py-32 max-w-7xl mx-auto px-4 sm:px-6">
+        <Reveal className="flex items-end justify-between mb-12">
+          <h2 className="font-display text-3xl md:text-4xl font-black">Now in <em className="gold-text not-italic font-display italic">Season</em></h2>
+          <Link to="/listings" className="group inline-flex items-center gap-2 text-sm font-bold uppercase tracking-wide-luxe hover:text-primary transition-colors">All <ArrowUpRight className="w-4 h-4 group-hover:rotate-45 transition-transform" /></Link>
+        </Reveal>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {signature.map((l, i) => (
+            <Reveal key={l.id} delay={i * 100} variant="scale">
+              <ListingCard listing={l} showFavorite />
+            </Reveal>
+          ))}
+        </div>
+      </section>
+
+      {/* ═══════════ TESTIMONIALS ═══════════ */}
+      <section className="py-24 md:py-32 bg-obsidian dark:bg-card text-white relative overflow-hidden">
+        <Quote className="absolute top-16 left-8 w-40 h-40 text-primary/10" />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative">
+          <Reveal className="text-center mb-14">
+            <span className="text-primary text-xs font-bold tracking-luxe uppercase">Voices of Our Guests</span>
+            <h2 className="font-display text-4xl md:text-5xl font-black mt-3">Stories Written in <em className="gold-text">Gold</em></h2>
+          </Reveal>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {TESTIMONIALS.map((t, i) => (
+              <Reveal key={t.name} delay={i * 130}>
+                <div className="p-8 rounded-3xl bg-white/[0.04] border border-white/10 h-full card-luxe">
+                  <div className="flex gap-1 mb-5">
+                    {Array.from({ length: 5 }).map((_, j) => <Star key={j} className="w-4 h-4 fill-gold text-gold" />)}
+                  </div>
+                  <p className="font-display text-lg italic leading-relaxed text-white/85">“{t.quote}”</p>
+                  <div className="flex items-center gap-3 mt-7 pt-6 border-t border-white/10">
+                    <img src={t.avatar} alt={t.name} className="w-11 h-11 rounded-full border-2 border-primary/50" loading="lazy" />
+                    <div>
+                      <p className="font-bold text-sm">{t.name}</p>
+                      <p className="text-xs text-white/50 tracking-wide-luxe uppercase">{t.place}</p>
                     </div>
-                    {item}
-                  </li>
-                ))}
-              </ul>
-              <Link to="/partner/register" className="inline-flex items-center gap-2 mt-8 px-7 py-3.5 bg-primary text-primary-foreground font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl active:scale-95 group">
-                Register as Partner <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-              </Link>
+                  </div>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ═══════════ PARTNER ═══════════ */}
+      <section className="py-24 md:py-32 max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid lg:grid-cols-2 gap-14 items-center">
+          <Reveal variant="left" className="order-2 lg:order-1">
+            <div className="grid grid-cols-2 gap-5">
+              <img src="https://images.pexels.com/photos/31817160/pexels-photo-31817160.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200" alt="Luxury villa" className="rounded-3xl aspect-[3/4] object-cover mt-10 card-luxe" loading="lazy" />
+              <img src="https://images.pexels.com/photos/32490286/pexels-photo-32490286.jpeg?auto=compress&cs=tinysrgb&fit=crop&h=627&w=1200" alt="Cultural drummers" className="rounded-3xl aspect-[3/4] object-cover card-luxe" loading="lazy" />
             </div>
-            <div className="grid grid-cols-2 gap-4 stagger-children">
-              {[
-                { icon: Users, label: 'Tourism Partners', value: '50+', color: 'from-emerald-500/10 to-teal-500/10' },
-                { icon: MapPin, label: 'Active Locations', value: '120+', color: 'from-blue-500/10 to-indigo-500/10' },
-                { icon: Heart, label: 'Favorites Saved', value: '2K+', color: 'from-rose-500/10 to-pink-500/10' },
-                { icon: Globe, label: 'Countries Served', value: '30+', color: 'from-amber-500/10 to-orange-500/10' },
-              ].map((stat) => (
-                <div key={stat.label} className={`p-6 rounded-2xl border border-border bg-gradient-to-br ${stat.color} text-center card-hover`}>
-                  <stat.icon className="w-10 h-10 text-primary mx-auto mb-3" />
-                  <p className="text-3xl font-black">{stat.value}</p>
-                  <p className="text-xs text-muted-foreground mt-1 font-medium">{stat.label}</p>
+          </Reveal>
+          <Reveal variant="right" className="order-1 lg:order-2">
+            <span className="text-primary text-xs font-bold tracking-luxe uppercase">For Partners</span>
+            <h2 className="font-display text-4xl md:text-5xl font-black mt-3 leading-tight">An Audience Worthy of <em className="gold-text not-italic font-display italic">Your Craft</em></h2>
+            <p className="text-muted-foreground mt-5 text-lg font-light leading-relaxed max-w-md">
+              Present your estate, cuisine or curation to a global clientele with a taste
+              for the exceptional. One elegant dashboard for listings, inquiries and analytics.
+            </p>
+            <div className="mt-8 grid grid-cols-2 gap-4 max-w-md">
+              {[{ n: 50, s: '+', l: 'Partner Houses' }, { n: 30, s: '+', l: 'Guest Countries' }].map((s) => (
+                <div key={s.l} className="p-5 rounded-2xl border border-border/60 bg-card">
+                  <p className="font-display text-3xl font-black text-primary"><Counter target={s.n} suffix={s.s} /></p>
+                  <p className="text-xs text-muted-foreground uppercase tracking-wide-luxe mt-1">{s.l}</p>
                 </div>
               ))}
             </div>
-          </div>
+            <Link to="/partner/register" className="btn-shine inline-flex items-center gap-2 mt-9 px-8 py-4 rounded-full bg-foreground text-background dark:bg-primary dark:text-primary-foreground font-bold transition-all hover:shadow-xl active:scale-95">
+              Join the Collective <ArrowRight className="w-4 h-4" />
+            </Link>
+          </Reveal>
         </div>
       </section>
 
-      {/* ═══════ FOOTER ═══════ */}
-      <footer className="border-t border-border bg-card">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-14">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            <div className="col-span-2 md:col-span-1">
-              <Link to="/" className="flex items-center gap-2">
-                <span className="text-3xl">🌍</span>
-                <span className="text-2xl font-black text-primary">AfriYie</span>
-              </Link>
-              <p className="mt-3 text-sm text-muted-foreground leading-relaxed">
-                Connecting the world to Ghana&apos;s culture, heritage & experiences.
-              </p>
-              <p className="mt-4 text-xs text-muted-foreground">
-                Experience Ghana. Experience Africa Well.
-              </p>
+      {/* ═══════════ FOOTER ═══════════ */}
+      <footer className="bg-obsidian text-white pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center pb-12 border-b border-white/10">
+            <div className="w-14 h-14 mx-auto rounded-full border-2 border-primary flex items-center justify-center">
+              <span className="font-display text-2xl font-black text-primary">A</span>
             </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Explore</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><Link to="/listings" className="hover:text-primary transition-colors">All Listings</Link></li>
-                <li><Link to="/listings?category=accommodation" className="hover:text-primary transition-colors">Accommodations</Link></li>
-                <li><Link to="/listings?category=experience" className="hover:text-primary transition-colors">Experiences</Link></li>
-                <li><Link to="/listings?category=attraction" className="hover:text-primary transition-colors">Attractions</Link></li>
-                <li><Link to="/listings?category=festival" className="hover:text-primary transition-colors">Festivals</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Company</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><Link to="/" className="hover:text-primary transition-colors">About Us</Link></li>
-                <li><Link to="/partner/register" className="hover:text-primary transition-colors">Partner With Us</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Careers</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Blog</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="font-bold text-sm mb-4">Support</h4>
-              <ul className="space-y-2.5 text-sm text-muted-foreground">
-                <li><Link to="/" className="hover:text-primary transition-colors">Help Center</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Safety</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Privacy Policy</Link></li>
-                <li><Link to="/" className="hover:text-primary transition-colors">Terms of Service</Link></li>
-              </ul>
-            </div>
+            <p className="font-display text-3xl font-bold mt-4">AfriYie</p>
+            <p className="text-white/50 text-sm mt-1 tracking-luxe uppercase">Experience Ghana · Experience Africa Well</p>
           </div>
-          <div className="mt-10 pt-8 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-muted-foreground">
-            <span>© {new Date().getFullYear()} AfriYie. All rights reserved.</span>
-            <div className="flex gap-4">
-              <a href="#" className="hover:text-primary transition-colors">Twitter</a>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 py-12 text-sm">
+            {[
+              { h: 'Collections', links: [{ t: 'All Collections', u: '/listings' }, { t: 'Estates & Hotels', u: '/listings?category=accommodation' }, { t: 'Signature Experiences', u: '/listings?category=experience' }, { t: 'Festivals', u: '/listings?category=festival' }] },
+              { h: 'House', links: [{ t: 'Our Story', u: '/' }, { t: 'Partner With Us', u: '/partner/register' }, { t: 'Journal', u: '/' }, { t: 'Careers', u: '/' }] },
+              { h: 'Concierge', links: [{ t: 'Plan My Journey', u: '/signup' }, { t: 'Contact', u: '/' }, { t: 'Gift Cards', u: '/' }, { t: 'FAQ', u: '/' }] },
+              { h: 'Legal', links: [{ t: 'Privacy', u: '/' }, { t: 'Terms', u: '/' }, { t: 'Cookies', u: '/' }, { t: 'Accessibility', u: '/' }] },
+            ].map((col) => (
+              <div key={col.h}>
+                <h4 className="text-primary text-[11px] font-bold tracking-luxe uppercase mb-4">{col.h}</h4>
+                <ul className="space-y-2.5">
+                  {col.links.map((l) => <li key={l.t}><Link to={l.u} className="text-white/60 hover:text-primary transition-colors">{l.t}</Link></li>)}
+                </ul>
+              </div>
+            ))}
+          </div>
+          <div className="pt-8 border-t border-white/10 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-white/40">
+            <span>© {new Date().getFullYear()} AfriYie — All rights reserved. Crafted in Accra.</span>
+            <div className="flex gap-6">
               <a href="#" className="hover:text-primary transition-colors">Instagram</a>
-              <a href="#" className="hover:text-primary transition-colors">Facebook</a>
+              <a href="#" className="hover:text-primary transition-colors">X</a>
+              <a href="#" className="hover:text-primary transition-colors">Pinterest</a>
             </div>
           </div>
         </div>

@@ -1,219 +1,206 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, MapPin, DollarSign, Plane, Shirt, Hotel, Bus, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Sparkles, Loader2, DollarSign, Plane, Hotel, Bus, CheckCircle2, ArrowUpRight, Shirt } from 'lucide-react';
 import { sampleAIItinerary } from '@/lib/data/trips';
 import { GHANA_REGIONS, GhanaRegion } from '@/lib/types';
 import { formatCurrency } from '@/lib/utils/formatters';
 
-const TRAVEL_INTERESTS = ['Culture', 'History', 'Nature', 'Wildlife', 'Food', 'Beach', 'Adventure', 'Photography', 'Wellness', 'Festivals', 'Art', 'Music'];
+const INTERESTS = ['Culture', 'Heritage', 'Wildlife', 'Gastronomy', 'Beach', 'Wellness', 'Festivals', 'Photography', 'Art', 'Adventure'];
+const STEPS = ['Reading your preferences', 'Selecting estates & tables', 'Composing daily programmes', 'Pricing the journey', 'Final polish'];
 
-const LOADING_STEPS = [
-  { text: 'Analyzing your preferences...', delay: 0 },
-  { text: 'Finding best accommodations...', delay: 800 },
-  { text: 'Curating local experiences...', delay: 1600 },
-  { text: 'Estimating costs...', delay: 2200 },
-  { text: 'Generating your perfect itinerary...', delay: 2800 },
-];
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export default function AIPlanner() {
-  const [step, setStep] = useState<'form' | 'loading' | 'result'>('form');
-  const [departureCountry, setDepartureCountry] = useState('United States');
-  const [startDate, setStartDate] = useState('2024-12-15');
-  const [endDate, setEndDate] = useState('2024-12-28');
+  const [phase, setPhase] = useState<'form' | 'composing' | 'result'>('form');
+  const [doneSteps, setDoneSteps] = useState(0);
+  const [country, setCountry] = useState('United States');
+  const [start, setStart] = useState('2024-12-15');
+  const [end, setEnd] = useState('2024-12-28');
   const [budget, setBudget] = useState('3500');
-  const [travelers, setTravelers] = useState('2');
-  const [selectedRegions, setSelectedRegions] = useState<GhanaRegion[]>(['Greater Accra', 'Central', 'Ashanti']);
-  const [interests, setInterests] = useState<string[]>(['Culture', 'History', 'Food']);
-  const [loadingStep, setLoadingStep] = useState(0);
+  const [guests, setGuests] = useState('2');
+  const [regions, setRegions] = useState<GhanaRegion[]>(['Greater Accra', 'Central', 'Ashanti']);
+  const [interests, setInterests] = useState<string[]>(['Culture', 'Heritage']);
 
-  const toggleRegion = (region: GhanaRegion) => setSelectedRegions((prev) => prev.includes(region) ? prev.filter((r) => r !== region) : [...prev, region]);
-  const toggleInterest = (interest: string) => setInterests((prev) => prev.includes(interest) ? prev.filter((i) => i !== interest) : [...prev, interest]);
+  const toggleList = <T,>(list: T[], item: T, setter: (v: T[]) => void) =>
+    setter(list.includes(item) ? list.filter((x) => x !== item) : [...list, item]);
 
-  const handleGenerate = (e: React.FormEvent) => {
+  const compose = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStep('loading');
-    setLoadingStep(0);
-    LOADING_STEPS.forEach((_, idx) => {
-      setTimeout(() => setLoadingStep(idx), LOADING_STEPS[idx].delay);
-    });
-    setTimeout(() => setStep('result'), 3500);
+    setPhase('composing');
+    setDoneSteps(0);
+    for (let i = 1; i <= STEPS.length; i++) {
+      await sleep(650);
+      setDoneSteps(i);
+    }
+    await sleep(500);
+    setPhase('result');
   };
 
-  const itinerary = sampleAIItinerary;
+  const it = sampleAIItinerary;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 p-6 md:p-8 text-white animate-fade-in-up">
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-amber-300" />
-            </div>
-            <div>
-              <h1 className="text-2xl md:text-3xl font-black">AfriYie AI Trip Planner</h1>
-              <p className="text-white/70 text-sm">Powered by artificial intelligence</p>
-            </div>
+    <div className="space-y-10">
+      {/* Hero */}
+      <div className="relative overflow-hidden rounded-3xl bg-obsidian text-white p-8 md:p-10 animate-fade-in-up">
+        <div className="absolute -top-20 -right-20 w-72 h-72 rounded-full bg-primary/15 blur-3xl animate-float" />
+        <div className="relative flex items-center gap-4">
+          <div className="w-14 h-14 rounded-full border border-primary/50 flex items-center justify-center animate-pulse-ring">
+            <Sparkles className="w-6 h-6 text-primary" />
           </div>
-          <p className="text-white/80 mt-2 max-w-lg">Tell us about your dream Ghana trip and our AI will create a personalized day-by-day itinerary with cost estimates.</p>
+          <div>
+            <span className="text-primary text-[10px] font-bold tracking-luxe uppercase">AfriYie Intelligence</span>
+            <h1 className="font-display text-3xl md:text-4xl font-black">The AI <em className="gold-text">Composer</em></h1>
+          </div>
         </div>
-        <div className="absolute -top-10 -right-10 w-48 h-48 rounded-full bg-white/5" />
-        <div className="absolute -bottom-20 -right-20 w-64 h-64 rounded-full bg-white/5" />
+        <p className="relative text-white/60 mt-4 max-w-xl font-light">State your wishes. Our composer drafts a complete Ghanaian odyssey — timed, priced and polished.</p>
       </div>
 
-      {step === 'form' && (
-        <form onSubmit={handleGenerate} className="space-y-6 animate-fade-in-up delay-100">
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <h3 className="font-bold text-lg mb-4">Trip Details</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      {phase === 'form' && (
+        <form onSubmit={compose} className="space-y-6 animate-fade-in-up delay-100">
+          <div className="rounded-3xl border border-border/60 bg-card p-7">
+            <h3 className="font-display text-xl font-bold mb-5">The Brief</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
               <div>
-                <label className="block text-sm font-semibold mb-2">Departure Country</label>
-                <input value={departureCountry} onChange={(e) => setDepartureCountry(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="block text-[10px] font-bold uppercase tracking-luxe text-muted-foreground mb-2">Departing From</label>
+                <input value={country} onChange={(e) => setCountry(e.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40" />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Travelers</label>
-                <input type="number" value={travelers} onChange={(e) => setTravelers(e.target.value)} min="1" className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="block text-[10px] font-bold uppercase tracking-luxe text-muted-foreground mb-2">Party</label>
+                <input type="number" min="1" value={guests} onChange={(e) => setGuests(e.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40" />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">Start Date</label>
-                <input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="block text-[10px] font-bold uppercase tracking-luxe text-muted-foreground mb-2">From</label>
+                <input type="date" value={start} onChange={(e) => setStart(e.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40" />
               </div>
               <div>
-                <label className="block text-sm font-semibold mb-2">End Date</label>
-                <input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="block text-[10px] font-bold uppercase tracking-luxe text-muted-foreground mb-2">Until</label>
+                <input type="date" value={end} onChange={(e) => setEnd(e.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40" />
               </div>
               <div className="sm:col-span-2">
-                <label className="block text-sm font-semibold mb-2">Total Budget (USD)</label>
-                <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="w-full px-4 py-3 rounded-xl border border-input bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary/50" />
+                <label className="block text-[10px] font-bold uppercase tracking-luxe text-muted-foreground mb-2">All-in Budget (USD)</label>
+                <input type="number" value={budget} onChange={(e) => setBudget(e.target.value)} className="w-full px-4 py-3.5 rounded-xl border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary/40" />
               </div>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <h3 className="font-bold text-lg mb-3">Regions to Visit</h3>
+          <div className="rounded-3xl border border-border/60 bg-card p-7">
+            <h3 className="font-display text-xl font-bold mb-4">Regions of Interest</h3>
             <div className="flex flex-wrap gap-2">
-              {GHANA_REGIONS.slice(0, 10).map((region) => (
-                <button key={region} type="button" onClick={() => toggleRegion(region)} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${selectedRegions.includes(region) ? 'bg-primary text-primary-foreground shadow-md' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}>
-                  📍 {region}
+              {GHANA_REGIONS.slice(0, 10).map((r) => (
+                <button key={r} type="button" onClick={() => toggleList(regions, r, setRegions)} className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wide-luxe transition-all active:scale-95 ${regions.includes(r) ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' : 'border border-border hover:border-primary/50'}`}>
+                  ◆ {r}
                 </button>
               ))}
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <h3 className="font-bold text-lg mb-3">Travel Interests</h3>
+          <div className="rounded-3xl border border-border/60 bg-card p-7">
+            <h3 className="font-display text-xl font-bold mb-4">Inclinations</h3>
             <div className="flex flex-wrap gap-2">
-              {TRAVEL_INTERESTS.map((interest) => (
-                <button key={interest} type="button" onClick={() => toggleInterest(interest)} className={`px-4 py-2 rounded-xl text-sm font-semibold transition-all active:scale-95 ${interests.includes(interest) ? 'bg-accent text-accent-foreground shadow-md' : 'bg-secondary text-foreground hover:bg-secondary/80'}`}>
-                  {interest}
+              {INTERESTS.map((i) => (
+                <button key={i} type="button" onClick={() => toggleList(interests, i, setInterests)} className={`px-5 py-2.5 rounded-full text-xs font-bold uppercase tracking-wide-luxe transition-all active:scale-95 ${interests.includes(i) ? 'bg-foreground text-background dark:bg-primary dark:text-primary-foreground' : 'border border-border hover:border-primary/50'}`}>
+                  {i}
                 </button>
               ))}
             </div>
           </div>
 
-          <button type="submit" className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-4 bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-black rounded-2xl hover:shadow-xl transition-all active:scale-[0.98] text-lg shadow-lg">
-            <Sparkles className="w-6 h-6" /> Generate My Itinerary
+          <button type="submit" className="btn-shine w-full sm:w-auto px-12 py-5 rounded-full bg-primary text-primary-foreground font-black text-sm uppercase tracking-luxe hover:shadow-2xl hover:shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+            <Sparkles className="w-5 h-5" /> Compose My Journey
           </button>
         </form>
       )}
 
-      {step === 'loading' && (
-        <div className="flex flex-col items-center justify-center py-24 animate-fade-in">
+      {phase === 'composing' && (
+        <div className="flex flex-col items-center py-24 animate-fade-in">
           <div className="relative">
-            <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center">
+            <div className="w-24 h-24 rounded-full border-2 border-primary/30 flex items-center justify-center">
               <Loader2 className="w-10 h-10 text-primary animate-spin" />
             </div>
-            <div className="absolute inset-0 rounded-full border-2 border-primary/20 animate-ping" />
+            <div className="absolute inset-0 rounded-full border border-primary/30 animate-ping" />
           </div>
-          <h3 className="text-2xl font-black mt-8">Creating your itinerary...</h3>
-          <div className="mt-6 space-y-3 w-full max-w-sm">
-            {LOADING_STEPS.map((s, idx) => (
-              <div key={idx} className={`flex items-center gap-3 text-sm transition-all duration-300 ${idx <= loadingStep ? 'opacity-100' : 'opacity-30'}`}>
-                {idx < loadingStep ? (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0" />
-                ) : idx === loadingStep ? (
-                  <Loader2 className="w-5 h-5 text-primary shrink-0 animate-spin" />
-                ) : (
-                  <div className="w-5 h-5 rounded-full border-2 border-border shrink-0" />
-                )}
-                <span className={idx <= loadingStep ? 'font-medium' : 'text-muted-foreground'}>{s.text}</span>
+          <h3 className="font-display text-3xl font-black mt-9">Composing<span className="gold-text">…</span></h3>
+          <div className="mt-7 space-y-3.5 w-full max-w-xs">
+            {STEPS.map((s, i) => (
+              <div key={s} className={`flex items-center gap-3 text-sm transition-all duration-500 ${i < doneSteps ? 'opacity-100' : 'opacity-30'}`}>
+                {i < doneSteps ? <CheckCircle2 className="w-5 h-5 text-primary shrink-0" /> : <div className="w-5 h-5 rounded-full border-2 border-border shrink-0" />}
+                <span className={i < doneSteps ? 'font-semibold' : ''}>{s}</span>
               </div>
             ))}
           </div>
         </div>
       )}
 
-      {step === 'result' && (
-        <div className="space-y-6 animate-fade-in-up">
-          <div className="flex items-center justify-between">
-            <h2 className="text-2xl font-black">Your AI Itinerary ✨</h2>
-            <button onClick={() => setStep('form')} className="px-4 py-2 border border-border rounded-xl text-sm font-bold hover:bg-secondary transition-all">
-              Generate Another
-            </button>
+      {phase === 'result' && (
+        <div className="space-y-8 animate-fade-in-up">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+            <h2 className="font-display text-3xl font-black">Your Composition <em className="gold-text not-italic font-display italic">✦</em></h2>
+            <button onClick={() => setPhase('form')} className="text-xs font-bold uppercase tracking-wide-luxe text-primary hover:opacity-70">Compose anew</button>
           </div>
 
-          {/* Cost Summary */}
-          <div className="p-6 rounded-2xl border border-border bg-card">
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary" /> Cost Estimate</h3>
+          {/* Cost */}
+          <div className="rounded-3xl border border-border/60 bg-card p-7">
+            <h3 className="font-display text-xl font-bold mb-5 flex items-center gap-2"><DollarSign className="w-5 h-5 text-primary" /> Investment</h3>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 stagger-children">
-              {Object.entries(itinerary.costEstimate).map(([key, value]) => (
-                <div key={key} className={`p-4 rounded-xl ${key === 'total' ? 'bg-primary/10 border-2 border-primary/30 sm:col-span-3' : 'bg-secondary/50'}`}>
-                  <p className="text-xs text-muted-foreground capitalize font-medium">{key}</p>
-                  <p className={`text-xl font-black mt-0.5 ${key === 'total' ? 'text-primary' : ''}`}>{formatCurrency(value)}</p>
+              {Object.entries(it.costEstimate).map(([k, v]) => (
+                <div key={k} className={`p-4 rounded-2xl ${k === 'total' ? 'bg-primary/10 border border-primary/30 sm:col-span-3' : 'bg-secondary/60'}`}>
+                  <p className="text-[10px] uppercase tracking-luxe text-muted-foreground">{k}</p>
+                  <p className={`font-display text-2xl font-black mt-1 ${k === 'total' ? 'gold-text' : ''}`}>{formatCurrency(v)}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Daily Itinerary */}
-          <div>
-            <h3 className="font-bold text-lg mb-4 flex items-center gap-2"><MapPin className="w-5 h-5 text-primary" /> Day-by-Day Plan</h3>
-            <div className="space-y-5 stagger-children">
-              {itinerary.days.map((day) => (
-                <div key={day.day} className="p-6 rounded-2xl border border-border bg-card">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-primary to-primary/70 text-primary-foreground flex items-center justify-center font-black text-lg shadow-lg">
-                      {day.day}
-                    </div>
-                    <div>
-                      <p className="font-bold text-lg">Day {day.day} — {day.region}</p>
-                      <p className="text-xs text-muted-foreground">{day.date}</p>
-                    </div>
+          {/* Days */}
+          <div className="space-y-5">
+            {it.days.map((day) => (
+              <div key={day.day} className="rounded-3xl border border-border/60 bg-card p-7">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="w-14 h-14 rounded-full bg-obsidian dark:bg-primary text-primary dark:text-primary-foreground flex items-center justify-center font-display text-xl font-black border border-primary/40">
+                    {day.day}
                   </div>
-                  <div className="space-y-4 ml-6 border-l-2 border-primary/20 pl-6">
-                    {day.activities.map((activity, idx) => (
-                      <div key={idx} className="relative group">
-                        <div className="absolute -left-[31px] top-1 w-4 h-4 rounded-full bg-primary/20 border-2 border-primary group-hover:scale-125 transition-transform" />
-                        <div className="flex items-start justify-between gap-2">
-                          <div>
-                            <p className="text-xs text-muted-foreground font-semibold">{activity.time}</p>
-                            <p className="font-bold text-sm">{activity.activity}</p>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-0.5"><MapPin className="w-3 h-3" /> {activity.location}</p>
-                          </div>
-                          {activity.cost > 0 && <span className="px-2 py-0.5 rounded-lg bg-primary/10 text-primary text-xs font-bold shrink-0">{formatCurrency(activity.cost)}</span>}
+                  <div>
+                    <p className="font-display text-xl font-bold">Day {day.day} — {day.region}</p>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide-luxe">{day.date}</p>
+                  </div>
+                </div>
+                <div className="ml-6 border-l-2 border-primary/25 pl-6 space-y-4">
+                  {day.activities.map((a, i) => (
+                    <div key={i} className="relative group">
+                      <span className="absolute -left-[29px] top-1.5 w-3 h-3 rotate-45 border-2 border-primary bg-card group-hover:scale-125 transition-transform" />
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <p className="text-[10px] text-primary font-bold uppercase tracking-wide-luxe">{a.time}</p>
+                          <p className="font-bold text-sm mt-0.5">{a.activity}</p>
+                          <p className="text-xs text-muted-foreground">{a.location}{a.notes ? ` — ${a.notes}` : ''}</p>
                         </div>
-                        {activity.notes && <p className="text-xs text-muted-foreground italic mt-1 flex items-center gap-1"><ArrowRight className="w-3 h-3" /> {activity.notes}</p>}
+                        {a.cost > 0 && <span className="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-black shrink-0">{formatCurrency(a.cost)}</span>}
                       </div>
-                    ))}
-                  </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
+              </div>
+            ))}
+          </div>
+
+          {/* Counsel */}
+          <div className="grid md:grid-cols-3 gap-5">
+            <div className="rounded-3xl border border-border/60 bg-card p-6">
+              <h4 className="font-display font-bold flex items-center gap-2 mb-4"><Bus className="w-4 h-4 text-primary" /> In Transit</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">{it.transportRecommendations.map((r, i) => <li key={i} className="flex gap-2"><span className="text-primary">◆</span>{r}</li>)}</ul>
+            </div>
+            <div className="rounded-3xl border border-border/60 bg-card p-6">
+              <h4 className="font-display font-bold flex items-center gap-2 mb-4"><Hotel className="w-4 h-4 text-primary" /> Houses of Rest</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">{it.accommodationRecommendations.map((r, i) => <li key={i} className="flex gap-2"><span className="text-primary">◆</span>{r}</li>)}</ul>
+            </div>
+            <div className="rounded-3xl border border-border/60 bg-card p-6">
+              <h4 className="font-display font-bold flex items-center gap-2 mb-4"><Shirt className="w-4 h-4 text-primary" /> The Valise</h4>
+              <ul className="space-y-2.5 text-sm text-muted-foreground">{it.packingSuggestions.slice(0, 6).map((s, i) => <li key={i} className="flex gap-2 items-center"><Plane className="w-3 h-3 text-primary shrink-0" />{s}</li>)}</ul>
             </div>
           </div>
 
-          {/* Recommendations */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-            <div className="p-5 rounded-2xl border border-border bg-card">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Bus className="w-5 h-5 text-blue-500" /> Transport Tips</h3>
-              <ul className="space-y-2">{itinerary.transportRecommendations.map((r, i) => <li key={i} className="text-sm text-muted-foreground flex items-start gap-2"><span className="text-primary mt-0.5 shrink-0">•</span>{r}</li>)}</ul>
-            </div>
-            <div className="p-5 rounded-2xl border border-border bg-card">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Hotel className="w-5 h-5 text-amber-500" /> Where to Stay</h3>
-              <ul className="space-y-2">{itinerary.accommodationRecommendations.map((r, i) => <li key={i} className="text-sm text-muted-foreground flex items-start gap-2"><span className="text-primary mt-0.5 shrink-0">•</span>{r}</li>)}</ul>
-            </div>
-            <div className="p-5 rounded-2xl border border-border bg-card">
-              <h3 className="font-bold mb-3 flex items-center gap-2"><Shirt className="w-5 h-5 text-purple-500" /> Packing List</h3>
-              <div className="space-y-1.5">{itinerary.packingSuggestions.slice(0, 6).map((s, i) => <p key={i} className="text-sm text-muted-foreground flex items-center gap-2"><Plane className="w-3 h-3 text-primary shrink-0" />{s}</p>)}</div>
-            </div>
+          <div className="flex flex-wrap gap-3">
+            <span className="px-6 py-3.5 rounded-full bg-primary text-primary-foreground text-sm font-bold inline-flex items-center gap-2">Saved to your journeys <CheckCircle2 className="w-4 h-4" /></span>
+            <span className="px-6 py-3.5 rounded-full border border-border text-sm font-bold inline-flex items-center gap-2">Share itinerary <ArrowUpRight className="w-4 h-4" /></span>
           </div>
         </div>
       )}
